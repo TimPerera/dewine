@@ -34,12 +34,19 @@ def hash_pw(password):
 
 def generate_rand(mean,mode, prob_of_mode, sd=1, size = 1,precision=2):
     # a function that generates values based on a specified distribution.
+    # value returned will always be positive.
     res = []
     for _ in range(size):
-        if random.gauss(mu=0, sigma=sd)<=prob_of_mode:
-            res.append(mode)
+        if random.random()<=prob_of_mode:
+            if precision ==0:
+                res.append(int(abs(round(mode,precision))))
+            else:
+                res.append(abs(round(mode,precision)))
         else:
-            res.append(abs(round(random.gauss(mu=mean,sigma=sd),precision)))
+            if precision == 0:
+                res.append(int(abs(round(random.gauss(mu=mean,sigma=sd),precision))))
+            else:
+                res.append(abs(round(random.gauss(mu=mean,sigma=sd),precision)))
     return res
 
 class Customer():
@@ -120,7 +127,7 @@ if __name__ == '__main__':
     inventory = np.random.normal(loc=250, scale=3,size=len(wine_data))
     wine_data['inventory'] = inventory
 
-    # generate data pertaining to transactions 
+    # generate data pertaining to transactions - DONE
     # generate normal data across most of the products, 5% should have no sales.
     # generate random outliers
     # generate some trends: 
@@ -136,7 +143,7 @@ if __name__ == '__main__':
     # 5) order_detail_id
     # 6) total_cost
 
-    transactions = 1
+    transactions = 10
     list_of_transactions = []
 
     def get_items(session_start_time,number_of_items=1,):
@@ -148,46 +155,75 @@ if __name__ == '__main__':
                 product_idx  = wine_data.Name[wine_data.Rating>4.4].sample(1).index[0]
             else:
                 product_idx  = wine_data.Name.sample(1).index[0]
+            quantity = generate_rand(mean = 2, mode = 1,prob_of_mode = 0.8,size = 1,precision = 0)[0]
+
             product = {
+                'product_idx': product_idx,
                 'product_name' : wine_data.iloc[product_idx].Name,
                 'product_winery' : wine_data.iloc[product_idx].Winery,
                 'product_country' : wine_data.iloc[product_idx].Country,
                 'product_region' : wine_data.iloc[product_idx].Region,
-                'product_quantity' : generate_rand(2, 1,0.8,1,0)
+                'product_quantity' : quantity,
+                'product_price' : wine_data.iloc[product_idx].Price
             }
             cart.items.append(product)
+        update_inventory(cart.items)
         transaction_id = fake.unique.random_int(min=111111, max=999999)
         return cart, transaction_id
 
     def update_inventory(cart):
-        for item in range(len(cart)):
-            wine_data[wine_data.Name == item.key()].inventory -= wine_data.value()
+        # Updates inventory, negative values represent pre-orders for once stocks become available.
+        # TODO: Make SQL call to update inventory table
+        for product in cart:
+            wine_data.loc[product.get('product_idx'),'inventory'] -= product.get('product_quantity')
+            if wine_data.iloc[product.get('product_idx')].inventory <= 5: 
+                print(f"Warning Low Inventory for {product.get('product_idx')}: {product.get('product_name')}")
+            #print(f"Inventory Updated for {product.get('product_idx')}: {product.get('product_name')}")
 
-    def get_total_price(products):
-        total_price = 0
-        for item in products.keys():
-            total_price += wine_data.Price[wine_data.Name == item]
-            print("Printing total price: ",wine_data[wine_data.Name == item].Price)
-        return total_price
-
+    def produce_transactions(transactions, number_of_items=False):
     # create transaction using place_order method, update inventory straight after.
-    for transaction in range(transactions):
-        date_time = fake.date_time_between(start_date = '-3y', end_date = 'now')
-        # first choose random customer
-        cust = np.random.choice(size = 1, a = customer_list)[0]
-        session_start_time = date_time #- timedelta(minutes = generate_rand(mean=4, mode=5, prob_of_mode = 0.5, sd = 2, precision = 0))
-        total_discount = generate_rand(mean=5, mode = 2, prob_of_mode = 0.5, sd = 2, precision = 2)
-        cart, order_detail_id = get_items(date_time, number_of_items = 2)
-        total_price = get_total_price(cart.items)
+        for transaction in range(transactions): # One transaction per customer
+            if not number_of_items: int(generate_rand(mean = 3, mode = 2, prob_of_mode=0.5, sd=2, precision=0)[0])
+            date_time = fake.date_time_between(start_date = '-3y', end_date = 'now')
+            # first choose random customer
+            cust = np.random.choice(size = 1, a = customer_list)[0] # test to see if repeat customers are observed
+            session_start_time = date_time #- timedelta(minutes = generate_rand(mean=4, mode=5, prob_of_mode = 0.5, sd = 2, precision = 0))
+            total_discount = generate_rand(mean=5, mode = 2, prob_of_mode = 0.5, sd = 2, precision = 2)
+            cart, order_detail_id = get_items(date_time, number_of_items = generate_rand(mean = 3, mode = 2, prob_of_mode=0.5, sd=2, precision=0)[0])
+            total_price = 0
+            for product in cart.items:
+                total_price += round(product.get('product_price') * product.get('product_quantity'),2)
+            total_quantity = 0
+
+            print(f'''
+            Transaction Details:
+            Date/Time: {date_time}
+            Customer: {cust.first_name + ' ' + cust.last_name}
+            Order ID: {order_detail_id}
+            Products: {[product.get('product_name') for product in cart.items] }
+            Quantity: {round(sum([product.get('product_quantity') for product in cart.items]),0)}
+            Total Cost: ${total_price}
+            ''')
     
+    # generate data pertaining to transactions - DONE
+    produce_transactions(transactions = 10)
+    # generate normal data across most of the products, 5% should have no sales.
+    # generate random `number_of_items` outliers
+    print("******** Outliers")
+    [produce_transactions(transactions=5,number_of_items = x) for x in generate_rand(mean=40,mode=35,prob_of_mode=0.7,sd=4,size=5)]
+    # generate some trends: 
+    # i) over seasons 
+    # ii) over customer segments (total cost and frequency)
+    # iii) based on ratings of wine
+
+    # each transaction should contain the following:
+    # 1) scene_id
+    # 2) session_start_time
+    # 3) session_end_time
+    # 4) total_discount
+    # 5) order_detail_id
+    # 6) total_cost    
     
 
-    print(f'''
-    Transaction Details:
-    Date/Time: {date_time}
-    Customer: {cust.first_name + ' ' + cust.last_name}
-    Order ID: {order_detail_id}
-    Products: {cart.items.keys()}
-    Total Cost: {total_price}
-    ''')
+    
 
