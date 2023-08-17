@@ -73,19 +73,15 @@ class Customer():
 
 class ShoppingCart():
 
-    def __init__(self, items, session_start_time, total_cost, customer_id):
+    def __init__(self, items, session_start_time):
         self.items = items
         self.session_start_time = session_start_time, 
-        self.total_cost = total_cost
-        self.customer_id = customer_id
         self.cart_id = uuid.uuid4()
 
     def  __str__(self):
         return f"""
         Cart_ID: {self.cart_id}
         Total Cart Items: {len(self.items)}
-        Total Item Cost: {self.total_cost}
-        Customer_ID: {self.customer_id}
         Cart Instantiated at: {self.session_start_time}
         """
 
@@ -94,7 +90,7 @@ if __name__ == '__main__':
 # generate data that pertains to customers
     count = 1
 
-    entries = 100
+    entries = 5
     customer_list = []
     for _ in range(entries):
         first_name = fake.first_name()
@@ -143,26 +139,55 @@ if __name__ == '__main__':
     transactions = 1
     list_of_transactions = []
 
-    def place_order( session_start_time,number_of_items=1,):
-        pass
-        cart = ShoppingCart(items=[],session_start_time = session_start_time,)
+    def get_items(session_start_time,number_of_items=1,):
+        cart = ShoppingCart(items=[],session_start_time = session_start_time)
+        # items = {product_name : quantity}
         for _ in range(number_of_items):
             # create purchasing bias towards higher rated wines
             if random.gauss(0,1) < 0.7:
-                cart.items.append(wine_data[wine_data.rating>4.4].sample(1)) 
+                product_idx  = wine_data.Name[wine_data.Rating>4.4].sample(1).index[0]
+            else:
+                product_idx  = wine_data.Name.sample(1).index[0]
+            product = {
+                'product_name' : wine_data.iloc[product_idx].Name,
+                'product_winery' : wine_data.iloc[product_idx].Winery,
+                'product_country' : wine_data.iloc[product_idx].Country,
+                'product_region' : wine_data.iloc[product_idx].Region,
+                'product_quantity' : generate_rand(2, 1,0.8,1,0)
+            }
+            cart.items.append(product)
+        transaction_id = fake.unique.random_int(min=111111, max=999999)
+        return cart, transaction_id
 
+    def update_inventory(cart):
+        for item in range(len(cart)):
+            wine_data[wine_data.Name == item.key()].inventory -= wine_data.value()
 
-        wine_data
+    def get_total_price(products):
+        total_price = 0
+        for item in products.keys():
+            total_price += wine_data.Price[wine_data.Name == item]
+            print("Printing total price: ",wine_data[wine_data.Name == item].Price)
+        return total_price
 
-    def update_inventory():
-        pass
-
-
+    # create transaction using place_order method, update inventory straight after.
     for transaction in range(transactions):
         date_time = fake.date_time_between(start_date = '-3y', end_date = 'now')
         # first choose random customer
         cust = np.random.choice(size = 1, a = customer_list)[0]
-        session_start_time = date_time - timedelta(minutes = generate_rand(mean=4, mode=5, prob_of_mode = 0.5, sd = 2, precision = 0))
+        session_start_time = date_time #- timedelta(minutes = generate_rand(mean=4, mode=5, prob_of_mode = 0.5, sd = 2, precision = 0))
         total_discount = generate_rand(mean=5, mode = 2, prob_of_mode = 0.5, sd = 2, precision = 2)
-        orders, order_detail_id = place_order()
+        cart, order_detail_id = get_items(date_time, number_of_items = 2)
+        total_price = get_total_price(cart.items)
+    
+    
+
+    print(f'''
+    Transaction Details:
+    Date/Time: {date_time}
+    Customer: {cust.first_name + ' ' + cust.last_name}
+    Order ID: {order_detail_id}
+    Products: {cart.items.keys()}
+    Total Cost: {total_price}
+    ''')
 
