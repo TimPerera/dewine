@@ -11,4 +11,3 @@ De-Wine's infrastructure and data.
 - [ ] Populate SQL database
 - [ ] Create Tableau to visualize data
 - [ ] Use Machine Learning to analyze data
-
