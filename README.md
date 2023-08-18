@@ -4,7 +4,7 @@ DeWine is a fictional e-commerce platform that sells wine. This project designs,
 De-Wine's infrastructure and data. 
 
 ### Database Design
-![design](DeWineDatabase.png)
+![DeWineDatabase.png](https://github.com/TimPerera/dewine/blob/ce7e0f4532b20283cb6db3537693e2c712ab9ee1/DeWineDatabase.png)
 
 ### **Project TODO**
 - [ ] Generare fake data
