@@ -182,18 +182,20 @@ if __name__ == '__main__':
 
     def produce_transactions(transactions, number_of_items=False):
     # create transaction using place_order method, update inventory straight after.
-        for transaction in range(transactions): # One transaction per customer
+        for _ in range(transactions): # One transaction per customer
             if not number_of_items: int(generate_rand(mean = 3, mode = 2, prob_of_mode=0.5, sd=2, precision=0)[0])
+            print('number of items')
             date_time = fake.date_time_between(start_date = '-3y', end_date = 'now')
             # first choose random customer
             cust = np.random.choice(size = 1, a = customer_list)[0] # test to see if repeat customers are observed
             session_start_time = date_time #- timedelta(minutes = generate_rand(mean=4, mode=5, prob_of_mode = 0.5, sd = 2, precision = 0))
             total_discount = generate_rand(mean=5, mode = 2, prob_of_mode = 0.5, sd = 2, precision = 2)
-            cart, order_detail_id = get_items(date_time, number_of_items = generate_rand(mean = 3, mode = 2, prob_of_mode=0.5, sd=2, precision=0)[0])
+            cart, order_detail_id = get_items(date_time, number_of_items = number_of_items)
             total_price = 0
             for product in cart.items:
-                total_price += round(product.get('product_price') * product.get('product_quantity'),2)
-            total_quantity = 0
+                total_price +=product.get('product_price') * product.get('product_quantity')
+            total_price = round(total_price,2)
+            
 
             print(f'''
             Transaction Details:
@@ -201,16 +203,16 @@ if __name__ == '__main__':
             Customer: {cust.first_name + ' ' + cust.last_name}
             Order ID: {order_detail_id}
             Products: {[product.get('product_name') for product in cart.items] }
-            Quantity: {round(sum([product.get('product_quantity') for product in cart.items]),0)}
+            Quantity: {sum([product.get('product_quantity') for product in cart.items])}
             Total Cost: ${total_price}
             ''')
     
     # generate data pertaining to transactions - DONE
-    produce_transactions(transactions = 10)
+    produce_transactions(transactions = 140)
     # generate normal data across most of the products, 5% should have no sales.
     # generate random `number_of_items` outliers
-    print("******** Outliers")
-    [produce_transactions(transactions=5,number_of_items = x) for x in generate_rand(mean=40,mode=35,prob_of_mode=0.7,sd=4,size=5)]
+    [produce_transactions(transactions=5,number_of_items = x) for x in generate_rand(mean=15,mode=12,prob_of_mode=0.7,sd=2,size=5, precision=0) if x >= 1]
+    
     # generate some trends: 
     # i) over seasons 
     # ii) over customer segments (total cost and frequency)
