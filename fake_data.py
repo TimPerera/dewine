@@ -57,6 +57,9 @@ class ShoppingCart():
         self.session_start_time = session_start_time, 
         self.cart_id = uuid.uuid4()
 
+    def __len__(self):
+        return len(self.items)
+
     def  __str__(self):
         # What is called when a ShoppingCart object is called. 
         return f"""
@@ -74,10 +77,10 @@ class Product():
         self.winery = None
         self.country = None
         self.region = None
-        self.quantity = None
+        self.quantity = 0
         self.price = None
         self.year = None
-        self.inventory = None
+        self.inventory = 0
 
     def load_products(self, data):
         for id, product in enumerate(data.itertuples()):
@@ -91,6 +94,7 @@ class Product():
             self.year = product.Year
             self.inventory = generate_rand(mean=600, mode=550, prob_of_mode=0.5, sd=1.2, size=1,precision=0)[0]
         print('Products Loaded.')
+        
     
     def __str__(self):
         return f'''
@@ -100,15 +104,6 @@ class Product():
         Product Year: {self.year}
         Product Price: {self.price}
         '''
-        
-    def update_inventory(self, cart):
-        # Updates inventory, negative values represent pre-orders for once stocks become available.
-        # TODO: Make SQL call to update inventory table
-        for product in cart:
-            product.inventory -= product.quantity # remove ordered items from inventory
-            if product.inventory <= 5: 
-                print(f"Warning Low Inventory for {product.idx}: {product.name}")
-    
 
 class Customer():
     # Generates an instance of a customer with all their details. 
@@ -131,23 +126,24 @@ class Customer():
     def get_items(self, products, session_start_time,number_of_items=1, bias=True):
         # Fetches a product along with all its details. This method replicates the action of a customer selecting products (with varying quantities)
         # create purchasing bias towards higher rated wines
+        quantity = generate_rand(mean = 2,mode = 1, prob_of_mode=0.8,size=1,precision=0)[0]
         cart = ShoppingCart(items=[],session_start_time = session_start_time)
         high_rated_products = [product for product in products if product.rating > 4.4]
         low_rated_products = [product for product in products if product.rating <= 4.4]
         threshold =  0.7 if bias else 0.5 
+        products_selected = []
         for _ in range(number_of_items):
             if random.gauss(0,1) < threshold:
-                products_selected  = random.choice(high_rated_products)
+                cart.items.append(random.choice(high_rated_products))
             else:
-                products_selected  = random.choice(low_rated_products)
-        cart.items += products_selected
+                cart.items.append(random.choice(low_rated_products))
         transaction_id = fake.unique.random_int(min=111111, max=999999)
         return cart, transaction_id
         
     def __str__(self):
         # What is printed out when a customer instance is called. 
         return f''' 
-        Customer SceneID = {self.scene_id}
+        Customer SceneID = {self.scene_ID}
         Name: {" ".join([self.first_name, self.last_name])}
         Address: {self.full_address}
         Email: {self.email}
@@ -156,24 +152,42 @@ class Customer():
         Store Credit: ${self.store_credit}
         Scene Points: {self.scene_points}
         '''
-
+def update_inventory(cart):
+    # Updates inventory, negative values represent pre-orders for once stocks become available.
+    # TODO: Make SQL call to update inventory table
+    for product in cart:
+        print(f'inventory: {product.inventory}, quantity: {product.quantity}')
+        product.inventory -= product.quantity # remove ordered items from inventory
+        if product.inventory <= 5: 
+            print(f"Warning Low Inventory for {product.idx}: {product.name}")
 
 ### -----------------------------------------------------------
 ### Create Data
 ### -----------------------------------------------------------
 # generate data that pertains to customers
 entries = 5 # number of customers to generate
-customer_list = [Customer() for _ in entries]
+customer_list = [Customer() for _ in range(entries)]
 # Load products and suppliers
 wine_data = pd.read_csv('./wine_data/consolidated_wine_data.csv')
-# generate inventory for each product
-inventory = np.random.normal(loc=250, scale=3,size=len(wine_data))
-wine_data['inventory'] = inventory
+product_list = []
 transactions = 10
 list_of_transactions = []
 
+for id, data in enumerate(wine_data.itertuples()):
+    product = Product()
+    product.type = data.Type
+    product.idx = id
+    product.name = data.Name
+    product.winery = data.Winery
+    product.region = data.Region
+    product.rating = data.Rating
+    product.price = data.Price
+    product.year = data.Year
+    product.inventory = generate_rand(mean=600, mode=550, prob_of_mode=0.5, sd=1.2, size=1,precision=0)[0]
+    product_list.append(product)
+
 def produce_transactions(transactions, number_of_items=False):
-# create transaction using place_order method, update inventory straight after.
+    # create transaction using place_order method, update inventory straight after.
     # each transaction should contain the following:
     # 1) scene_id
     # 2) session_start_time
@@ -181,39 +195,38 @@ def produce_transactions(transactions, number_of_items=False):
     # 4) total_discount
     # 5) order_detail_id
     # 6) total_cost    
-    products = Product()
-    products.load_products(wine_data)
 
     for _ in range(transactions): # One transaction per customer
-        if not number_of_items: int(generate_rand(mean = 3, mode = 2, prob_of_mode=0.5, sd=2, precision=0)[0])
-        print('number of items')
+        if not number_of_items: 
+            number_of_items = generate_rand(mean = 3, mode = 2, prob_of_mode=0.5, sd=2, precision=0)[0]
         session_start_time = fake.date_time_between(start_date = '-3y', end_date = 'now')
         # first choose random customer
         customer = np.random.choice(size = 1, a = customer_list)[0] # test to see if repeat customers are observed
         #- timedelta(minutes = generate_rand(mean=4, mode=5, prob_of_mode = 0.5, sd = 2, precision = 0))
-        total_discount = generate_rand(mean=5, mode = 2, prob_of_mode = 0.5, sd = 2, precision = 2)
-        cart, order_detail_id = customer.get_items(products, session_start_time, number_of_items = number_of_items)
-        products.update_inventory(cart)
+        #total_discount = generate_rand(mean=5, mode = 2, prob_of_mode = 0.5, sd = 2, precision = 2)
+        cart, order_detail_id = customer.get_items(product_list, session_start_time, number_of_items = number_of_items)
+        update_inventory(cart.items)
         total_price = 0
         for product in cart.items:
-            total_price += product.price * product.quantity
+            total_price += product.price * product.quantity 
         total_price = round(total_price,2)
         
-        print(f'''
+        return f'''
         Transaction Details:
         Date/Time: {session_start_time}
         Customer: {customer.first_name + ' ' + customer.last_name}
         Order ID: {order_detail_id}
-        Products: {[product.get('product_name') for product in cart.items] }
-        Quantity: {sum([product.get('product_quantity') for product in cart.items])}
+        Products: {[product.name for product in cart.items] }
+        Quantity: {sum([product.quantity for product in cart.items])}
         Total Cost: ${total_price}
-        ''')
+        '''
 
 # generate data pertaining to transactions - DONE
-produce_transactions(transactions = 140)
+produce_transactions(transactions = 5)
+print('Complete!')
 # generate normal data across most of the products, 5% should have no sales.
 # generate random `number_of_items` outliers
-[produce_transactions(transactions=5,number_of_items = x) for x in generate_rand(mean=15,mode=12,prob_of_mode=0.7,sd=2,size=5, precision=0) if x >= 1]
+#[produce_transactions(transactions=5,number_of_items = x) for x in generate_rand(mean=15,mode=12,prob_of_mode=0.7,sd=2,size=5, precision=0) if x >= 1]
 
 # generate some trends: 
 # i) over seasons 
@@ -222,4 +235,7 @@ produce_transactions(transactions = 140)
 
 
     
-
+# we stopped at trying to add the quantity to our product attribute. 
+# So far we were only looking at number of different items. 
+# Now we need to think of quantity per item. 
+# Was working on get_items i think this is where quantity for each item should be defined. Perhaps a for loop
