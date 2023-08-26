@@ -26,6 +26,9 @@ import numpy as np
 import pandas as pd
 import uuid
 from math import ceil
+from dateutil.relativedelta import relativedelta
+
+
 # customer
 fake = Faker()
 
@@ -205,7 +208,7 @@ for id, data in enumerate(wine_data.itertuples()):
     product.inventory = generate_rand(mean=600, mode=550, prob_of_mode=0.5, sd=1.2, size=1,precision=0)[0]
     product_list.append(product)
 
-def produce_transactions(transactions, number_of_items=False, seasonal_dates = None, type = None):
+def produce_transactions(transactions, number_of_items=False, seasonal_dates = None, type = None, less_than_age_condition = None, greater_than_age_condition = None):
     # create transaction, update inventory straight after.
     # each transaction should contain the following:
     # 1) scene_id
@@ -220,17 +223,26 @@ def produce_transactions(transactions, number_of_items=False, seasonal_dates = N
     # for each day till end day - set date
     for _ in range(transactions): # One transaction per customer
         if not number_of_items: 
-            number_of_items = generate_rand(mean = 3, mode = 2, prob_of_mode=0.5, sd=2, precision=0)[0]
-        start_date = datetime(s_dates['y'][0],s_dates['m'][0],s_dates['d'][0])
-        end_date = datetime(s_dates['y'][1],s_dates['m'][1],s_dates['d'][1])
-
-        if start_date and end_date:
+            number_of_items = generate_rand(mean = 3, mode = 2, prob_of_mode=0.5, sd=1, precision=0)[0]
+        # ability to introduce seasonality in data.
+        if seasonal_dates:
+            start_date = datetime(seasonal_dates['y'][0],seasonal_dates['m'][0],seasonal_dates['d'][0])
+            end_date = datetime(seasonal_dates['y'][1],seasonal_dates['m'][1],seasonal_dates['d'][1])
             session_start_time = fake.date_time_between(start_date = start_date, end_date = end_date)
         else:
             session_start_time = fake.date_time_between(start_date = '-3y', end_date = 'now')
-        # first choose random customer
-        customer = np.random.choice(size = 1, a = customer_list)[0] # test to see if repeat customers are observed
-        #- timedelta(minutes = generate_rand(mean=4, mode=5, prob_of_mode = 0.5, sd = 2, precision = 0))
+        # first choose random customer, with ability to discriminate across ages
+        if less_than_age_condition:
+            eligible = [cust for cust in customer_list if cust.dob >= less_than_age_condition]
+        elif greater_than_age_condition:
+            eligible = [cust for cust in customer_list if cust.dob <= greater_than_age_condition]
+
+        if not eligible:
+            customer = np.random.choice(size = 1, a = customer_list)[0]
+        elif len(eligible)==1:
+            customer = eligible[0]
+        else:
+            customer = random.sample(eligible, 1)[0]
         #total_discount = generate_rand(mean=5, mode = 2, prob_of_mode = 0.5, sd = 2, precision = 2)
         cart, order_detail_id = customer.get_items(product_list, session_start_time, number_of_items = number_of_items, type = type)
         update_inventory(cart.items)
@@ -242,6 +254,7 @@ def produce_transactions(transactions, number_of_items=False, seasonal_dates = N
         Transaction Details:
         Date/Time: {session_start_time}
         Customer: {customer.first_name + ' ' + customer.last_name}
+        Customer Age: {relativedelta(datetime.now().date(), customer.dob).years}
         Order ID: {order_detail_id}
         Products: {[product.name for product in cart.items] }
         Quantity: {sum([product.quantity for product in cart.items])}
@@ -259,44 +272,42 @@ def produce_transactions(transactions, number_of_items=False, seasonal_dates = N
 # generate some trends: 
 # i) over seasons
 
-s_dates = {
-    'y':[2022,2022],
-    'm':[5,8],
-    'd':[1,30]
-}
-produce_transactions(transactions = 1,
-                     seasonal_dates=s_dates)
+#s_dates = {
+#    'y':[2022,2022],
+#    'm':[5,8],
+#    'd':[1,30]
+#}
+#produce_transactions(transactions = 1,
+#                     seasonal_dates=s_dates)
 
-s_dates = {
-    'y':[2021,2021],
-    'm':[5,8],
-    'd':[1,30]
-}
-produce_transactions(transactions = 1,
-                     seasonal_dates=s_dates)
+#s_dates = {
+#     'y':[2021,2021],
+#     'm':[5,8],
+#     'd':[1,30]
+# }
+# produce_transactions(transactions = 1,
+#                      seasonal_dates=s_dates)
 
-s_dates = {
-    'y':[2020,2020],
-    'm':[5,8],
-    'd':[1,30]
-}
-produce_transactions(transactions = 1,
-                     seasonal_dates=s_dates)
+# s_dates = {
+#     'y':[2020,2020],
+#     'm':[5,8],
+#     'd':[1,30]
+# }
+# produce_transactions(transactions = 1,
+#                      seasonal_dates=s_dates)
 
-s_dates = {
-    'y':[2019,2019],
-    'm':[5,8],
-    'd':[1,30]
-}
-produce_transactions(transactions = 1,
-                     seasonal_dates=s_dates)
+#s_dates = {
+#     'y':[2019,2019],
+#     'm':[5,8],
+#     'd':[1,30]
+# }
+#produce_transactions(transactions = 1,
+#                    seasonal_dates=s_dates)
 
 # ii) over customer segments (total cost and frequency)
+# -- over age 
+date_of_birth = datetime(1993,2,2).date()
+produce_transactions(transactions=1,
+                     greater_than_age_condition = date_of_birth)
 # iii) based on ratings of wine - DONE
 
-
-    
-# we stopped at trying to add the quantity to our product attribute. 
-# So far we were only looking at number of different items. 
-# Now we need to think of quantity per item. 
-# Was working on get_items i think this is where quantity for each item should be defined. Perhaps a for loop
