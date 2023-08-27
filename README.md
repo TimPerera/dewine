@@ -8,7 +8,6 @@ De-Wine's infrastructure and data.
 ![DeWineDatabase.png](https://github.com/TimPerera/dewine/blob/ce7e0f4532b20283cb6db3537693e2c712ab9ee1/DeWineDatabase.png)
 =======
 ![DeWineDatabase.png]
-(https://github.com/TimPerera/dewine/blob/ce7e0f4532b20283cb6db3537693e2c712ab9ee1/DeWineDatabase.png)
 
 
 ### **Project TODO**
