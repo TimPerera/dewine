@@ -27,7 +27,7 @@ import pandas as pd
 import uuid
 from math import ceil
 from dateutil.relativedelta import relativedelta
-
+from collections import defaultdict
 
 # customer
 fake = Faker()
@@ -61,9 +61,8 @@ def generate_rand(mean,mode, prob_of_mode, sd=1, size = 1,precision=2, non_zero 
 
 class ShoppingCart():
     #  Generates a ShoppingCart option which contains the shopped items along with a time stamp. 
-    def __init__(self, items, session_start_time):
+    def __init__(self, items):
         self.items = items
-        self.session_start_time = session_start_time, 
         self.cart_id = uuid.uuid4()
 
     def __len__(self):
@@ -134,23 +133,21 @@ class Customer():
         self.store_credit = generate_rand(mean=5, mode=0, prob_of_mode = 0.8, size = 1, precision = 2)[0]
         self.scene_points = generate_rand(mean=1000,mode=700,prob_of_mode=0.7,size=1)[0]
 
-    def get_items(self, products, session_start_time,number_of_items=1, bias=True, type= None):
-        # Fetches a product along with all its details. This method replicates the action of a customer selecting products (with varying quantities)
+    def buy_items(self, number_of_items=1, bias=True, type_of_wine= None, selection = None):
+        # Fetches a product along with all its details. 
+        # This method replicates the action of a customer selecting products (with varying quantities)
         # create purchasing bias towards higher rated wines
-        
-        cart = ShoppingCart(items=[],session_start_time = session_start_time)
+        # selection refers to the product selection available to the client when shopping
+        cart = ShoppingCart(items=[])
         high_rated_products = low_rated_products = []
-        if type:
-            high_rated_products = [product for product in products if product.rating > 4.4 and product.type == type]
-            low_rated_products = [product for product in products if product.rating <= 4.4 and product.type == type]
+        if type_of_wine:
+            high_rated_products = [product for product in selection if (type_of_wine is None and product.rating > 4.4) or (type_of_wine is not None and product.rating > 4.4 and product.type == type_of_wine)]
+            low_rated_products = [product for product in selection if (type_of_wine is None and product.rating <= 4.4) or (type_of_wine is not None and product.rating <= 4.4 and product.type == type_of_wine)]
         else:
-            high_rated_products = [product for product in products if product.rating > 4.4]
-            low_rated_products = [product for product in products if product.rating <= 4.4]
+            high_rated_products = [product for product in selection if product.rating > 4.4]
+            low_rated_products = [product for product in selection if product.rating <= 4.4]
         threshold =  0.7 if bias else 0.5
         product_chosen = None
-      
-        
-
         for _ in range(number_of_items):
             quantity = generate_rand(mean = 2,mode = 1, prob_of_mode=0.8, size=1, precision=0)[0]
             if random.gauss(0,1) < threshold:
@@ -160,8 +157,7 @@ class Customer():
                 product_chosen = random.choice(low_rated_products)
                 product_chosen.quantity = quantity
             cart.items.append(product_chosen)
-        transaction_id = fake.unique.random_int(min=111111, max=999999)
-        return cart, transaction_id
+        return cart
         
     def __str__(self):
         # What is printed out when a customer instance is called. 
@@ -174,140 +170,194 @@ class Customer():
         Payment Method Available: {self.credit_card is not None}
         Store Credit: ${self.store_credit}
         Scene Points: {self.scene_points}
+            '''
+
+class Inventory():
+    def __init__(self, data_path):
+        # Upon initialization loads data 
+        data = pd.read_csv(data_path)
+        self.list = self.populate_inventory(data)
+
+    def update_inventory(self, cart):
+        # Updates inventory, negative values represent pre-orders for once stocks become available.
+        # TODO: Make SQL call to update inventory table
+        for product in cart:
+            product.inventory -= product.quantity # remove ordered items from inventory
+            if product.inventory <= 5: 
+                print(f"Warning Low Inventory for {product.idx}: {product.name}")
+        print("Inventory updated")
+
+    def populate_inventory(self, wine_data):
+        # Generate product info
+        product_list = []
+        for id, data in enumerate(wine_data.itertuples()):
+            product = Product()
+            product.type = data.Type
+            product.idx = id
+            product.name = data.Name
+            product.winery = data.Winery
+            product.region = data.Region
+            product.rating = data.Rating
+            product.price = data.Price
+            product.year = data.Year
+            product.inventory = generate_rand(mean=600, mode=550, prob_of_mode=0.5, sd=1.2, size=1,precision=0)[0]
+            product_list.append(product)
+        print('Database uploaded.')
+        return product_list
+
+class Transaction():
+
+    def __init__(self, customer, cart, time_limits, discount=0):
+        self.discount = discount
+        self.customer = customer
+        self.cart = cart
+        self.session_time = self.generate_session_time(time_limits)
+        self.transaction_id = self.generate_transaction_id()
+        self.discount_total = self.get_discount(self.discount)
+        self.total_cost = self.get_total() - self.discount_total
+
+    def __repr__(self):
+        customer_name = f"{self.customer.first_name + ' ' + self.customer.last_name}"
+        customer_age = relativedelta(datetime.now().date(), self.customer.dob).years
+        items_purchased = len(self.cart)
+        products = [product.name for product in self.cart.items]
+
+        return f'''
+        Transaction Details:
+        Date: {self.session_time}
+        Customer: {customer_name}
+        Customer Age: {customer_age} years
+        Items Purchased: {items_purchased}
+        Total Cost: ${self.total_cost}
+        Total Discount Applied: ${self.discount_total}
+        Products: {products}
         '''
-def update_inventory(cart):
-    # Updates inventory, negative values represent pre-orders for once stocks become available.
-    # TODO: Make SQL call to update inventory table
-    for product in cart:
-        product.inventory -= product.quantity # remove ordered items from inventory
-        if product.inventory <= 5: 
-            print(f"Warning Low Inventory for {product.idx}: {product.name}")
 
-### -----------------------------------------------------------
-### Create Data
-### -----------------------------------------------------------
-# generate data that pertains to customers
-entries = 5 # number of customers to generate
-customer_list = [Customer() for _ in range(entries)]
-# Load products and suppliers
-wine_data = pd.read_csv('./wine_data/consolidated_wine_data.csv')
-product_list = []
-transactions = 10
-list_of_transactions = []
+    def generate_session_time(self, time_limits):
+        start_date, end_date = time_limits
+        session_start_time = fake.date_time_between(start_date = start_date, end_date = end_date)
+        return session_start_time
 
-for id, data in enumerate(wine_data.itertuples()):
-    product = Product()
-    product.type = data.Type
-    product.idx = id
-    product.name = data.Name
-    product.winery = data.Winery
-    product.region = data.Region
-    product.rating = data.Rating
-    product.price = data.Price
-    product.year = data.Year
-    product.inventory = generate_rand(mean=600, mode=550, prob_of_mode=0.5, sd=1.2, size=1,precision=0)[0]
-    product_list.append(product)
+    def generate_transaction_id(self):
+        transaction_id = fake.unique.random_int(min=111111, max=999999)
+        return transaction_id
 
-def produce_transactions(transactions, number_of_items=False, seasonal_dates = None, type = None, less_than_age_condition = None, greater_than_age_condition = None):
-    # create transaction, update inventory straight after.
-    # each transaction should contain the following:
-    # 1) scene_id
-    # 2) session_start_time
-    # 3) session_end_time
-    # 4) total_discount
-    # 5) order_detail_id
-    # 6) total_cost
-    
-    # for each year till end year - set year
-    # for each month till end month - set month       
-    # for each day till end day - set date
-    for _ in range(transactions): # One transaction per customer
-        if not number_of_items: 
-            number_of_items = generate_rand(mean = 3, mode = 2, prob_of_mode=0.5, sd=1, precision=0)[0]
-        # ability to introduce seasonality in data.
-        if seasonal_dates:
-            start_date = datetime(seasonal_dates['y'][0],seasonal_dates['m'][0],seasonal_dates['d'][0])
-            end_date = datetime(seasonal_dates['y'][1],seasonal_dates['m'][1],seasonal_dates['d'][1])
-            session_start_time = fake.date_time_between(start_date = start_date, end_date = end_date)
-        else:
-            session_start_time = fake.date_time_between(start_date = '-3y', end_date = 'now')
-        # first choose random customer, with ability to discriminate across ages
-        if less_than_age_condition:
-            eligible = [cust for cust in customer_list if cust.dob >= less_than_age_condition]
-        elif greater_than_age_condition:
-            eligible = [cust for cust in customer_list if cust.dob <= greater_than_age_condition]
-
-        if not eligible:
-            customer = np.random.choice(size = 1, a = customer_list)[0]
-        elif len(eligible)==1:
-            customer = eligible[0]
-        else:
-            customer = random.sample(eligible, 1)[0]
-        #total_discount = generate_rand(mean=5, mode = 2, prob_of_mode = 0.5, sd = 2, precision = 2)
-        cart, order_detail_id = customer.get_items(product_list, session_start_time, number_of_items = number_of_items, type = type)
-        update_inventory(cart.items)
+    def get_total(self):
         total_price = 0
-        for product in cart.items:
+        for product in self.cart.items:
             total_price += product.price * product.quantity 
         total_price = round(total_price,2)
-        print(f'''
-        Transaction Details:
-        Date/Time: {session_start_time}
-        Customer: {customer.first_name + ' ' + customer.last_name}
-        Customer Age: {relativedelta(datetime.now().date(), customer.dob).years}
-        Order ID: {order_detail_id}
-        Products: {[product.name for product in cart.items] }
-        Quantity: {sum([product.quantity for product in cart.items])}
-        Total Cost: ${total_price}
-        ''')
+        return total_price
+    
+    def get_discount(self, discount):
+        return discount*self.get_total()
 
-# generate data pertaining to transactions - DONE
-#produce_transactions(transactions = 5)
-#print('Complete!')
-# generate normal data across most of the products, 5% should have no sales.
-# generate random `number_of_items` outliers
-#produce_transactions(transactions=2, number_of_items=15)
-#print('Outliers created.')
 
-# generate some trends: 
-# i) over seasons
+def run(transactions=1, num_customers=1, seasonal_dates=None, num_items=None, discount=0,
+        type_of_wine=False, less_than_age_condition=None, greater_than_age_condition=None):
+    # This method will walkthrough all necessary functions to generate data
 
-#s_dates = {
-#    'y':[2022,2022],
-#    'm':[5,8],
-#    'd':[1,30]
-#}
-#produce_transactions(transactions = 1,
-#                     seasonal_dates=s_dates)
+    # 1 .Load products metadata and suppliers
+    print('Script Running...')
+    customer_list = [Customer() for _ in range(num_customers)]
+    inventory = Inventory(data_path = './wine_data/consolidated_wine_data.csv')
+    list_of_transactions = []
+    filtered_customer_list = []
+    
+    # 2. Introduce trend parameters
+    # 2.1 Filter customer list with discrimination across ages
+    if not (less_than_age_condition and greater_than_age_condition):
+        print('Applied filter removed all customers. Removing Filter...')
+        filtered_customer_list = customer_list
+    elif less_than_age_condition:
+        filtered_customer_list = [cust for cust in customer_list if cust.dob >= less_than_age_condition]
+    elif greater_than_age_condition:
+        filtered_customer_list = [cust for cust in customer_list if cust.dob <= greater_than_age_condition]
+    else:
+        print('No filter applied to customer list.')
+        filtered_customer_list = customer_list
 
-#s_dates = {
-#     'y':[2021,2021],
-#     'm':[5,8],
-#     'd':[1,30]
-# }
-# produce_transactions(transactions = 1,
-#                      seasonal_dates=s_dates)
+    # 3. Option to introduce seasonality  
+    if seasonal_dates:
+        # format date for consumption
+        start_date = datetime(seasonal_dates['y'][0],seasonal_dates['m'][0],seasonal_dates['d'][0])
+        end_date = datetime(seasonal_dates['y'][1],seasonal_dates['m'][1],seasonal_dates['d'][1])  
+    else:
+        start_date = '-3y'
+        end_date = 'now'
+    time_record = start_date, end_date
 
-# s_dates = {
-#     'y':[2020,2020],
-#     'm':[5,8],
-#     'd':[1,30]
-# }
-# produce_transactions(transactions = 1,
-#                      seasonal_dates=s_dates)
+    # 3.1 Produce transactions
+    for _ in range(transactions):
+        for customer in filtered_customer_list:
+            # Process transactions
+            if not num_items: # number of items each customer buys
+                num_items = generate_rand(mean=3, mode=2, prob_of_mode=0.5, sd=1, precision=0)[0]
+            shopping_cart= customer.buy_items(number_of_items=num_items,
+                                              type_of_wine=type_of_wine,
+                                              selection = inventory.list)
+            transaction = Transaction(customer, shopping_cart, time_record, discount) # initializes a new session-time and transaction id.
+            # Calculate Total
+            transaction.get_total() # finalizes transaction and calculates the total value of the transaction (in-place).
+            # 4. Update inventory to reflect customer purchases
+            inventory.update_inventory(shopping_cart.items)
+            list_of_transactions.append((transaction))
+    return list_of_transactions 
+    
 
-#s_dates = {
-#     'y':[2019,2019],
-#     'm':[5,8],
-#     'd':[1,30]
-# }
-#produce_transactions(transactions = 1,
-#                    seasonal_dates=s_dates)
+if __name__=='main':
+    print('Running...')
+    sample_transactions = run(transactions=1, num_customers=1)
+    
+    for transaction in sample_transactions:
+        print(transaction)
 
-# ii) over customer segments (total cost and frequency)
-# -- over age 
-date_of_birth = datetime(1993,2,2).date()
-produce_transactions(transactions=1,
-                     greater_than_age_condition = date_of_birth)
-# iii) based on ratings of wine - DONE
+
+    # generate data pertaining to transactions - DONE
+    # produce_transactions(transactions = 5)
+    # print('Complete!')
+    # generate normal data across most of the products, 5% should have no sales.
+    # generate random `number_of_items` outliers
+    # produce_transactions(transactions=2, number_of_items=15)
+    # print('Outliers created.')
+
+    # generate some trends: 
+    # i) over seasons
+
+    # s_dates = {
+    #    'y':[2022,2022], ->>>>>>['start', 'finish']
+    #    'm':[5,8],
+    #    'd':[1,30]
+    #}
+    # produce_transactions(transactions = 1,
+    #                     seasonal_dates=s_dates)
+
+    # s_dates = {
+    #     'y':[2021,2021],
+    #     'm':[5,8],
+    #     'd':[1,30]
+    # }
+    # produce_transactions(transactions = 1,
+    #                      seasonal_dates=s_dates)
+
+    # s_dates = {
+    #     'y':[2020,2020],
+    #     'm':[5,8],
+    #     'd':[1,30]
+    # }
+    # produce_transactions(transactions = 1,
+    #                      seasonal_dates=s_dates)
+
+    #s_dates = {
+    #     'y':[2019,2019],
+    #     'm':[5,8],
+    #     'd':[1,30]
+    # }
+    # produce_transactions(transactions = 1,
+    #                    seasonal_dates=s_dates)
+
+    # ii) over customer segments (total cost and frequency)
+    # -- over age 
+    # date_of_birth = datetime(1993,2,2).date() # this is threshold.
+    # iii) based on ratings of wine - DONE
 
