@@ -1,5 +1,4 @@
 import sqlite3
-import Faker
 
 # create table
 connection = sqlite3.connect('voila.db')
