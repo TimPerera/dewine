@@ -18,4 +18,4 @@ De-Wine's infrastructure and data.
 - [ ] Create Tableau to visualize data
 - [ ] Use Machine Learning to analyze data
 
-If you have any questions about this project, feel free to reach out to me: htts://www.hihello.me/hi/timothy
+If you have any questions about this project, feel free to reach out to me: https://hihello.me/hi/timothy
