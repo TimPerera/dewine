@@ -1,6 +1,6 @@
 import pandas as pd
 from products import Product
-from my_utils import generate_rand
+from utils import generate_rand
 
 class Inventory():
     def __init__(self, data_path):

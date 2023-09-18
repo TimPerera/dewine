@@ -1,5 +1,5 @@
 
-from my_utils import generate_rand
+from utils import generate_rand
 from shopping_cart import ShoppingCart
 import random
 from faker import Faker

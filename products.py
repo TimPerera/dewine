@@ -1,4 +1,4 @@
-from my_utils import generate_rand
+from utils import generate_rand
 
 class Product():
     # Generates an instance of a product with all its details.
