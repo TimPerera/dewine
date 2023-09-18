@@ -12,5 +12,10 @@ De-Wine's infrastructure and data.
 ### **Project TODO**
 - [X] Generare fake data
 - [ ] Populate SQL database
+- [ ] Package app
+- [ ] Add Logging
+- [ ] Write tests
 - [ ] Create Tableau to visualize data
 - [ ] Use Machine Learning to analyze data
+
+If you have any questions about this project, feel free to reach out to me: htts://www.hihello.me/hi/timothy
