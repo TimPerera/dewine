@@ -1,16 +1,44 @@
+"""
+customer.py
+Provides functionality for Customer object. 
+"""
+
+import random
+
+from faker import Faker
+import bcrypt
+from sqlalchemy import Column, String, Date, Float, Integer
+from sqlalchemy.ext.declarative import declarative_base
 
 from utils import generate_rand
 from shopping_cart import ShoppingCart
-import random
-from faker import Faker
-import bcrypt
 
-class Customer():
-    # Generates an instance of a customer with all their details. 
+Base = declarative_base()
+
+class Customer(Base):
+    # Generates an instance of a customer with all their details.
+    __tablename__ = 'customer'
+
+    first_name = Column(String)
+    last_name =  Column(String)   
+    dob = Column(Date)
+    scene_ID = Column(Date)
+    password = Column(String)
+    full_address = Column(String)
+    city = Column(String)
+    postal_code = Column(String)
+    email = Column(String)
+    phone = Column(String)
+    credit_card = Column(String)
+    credit_card_expiry =Column(String)
+    store_credit = Column(Float)
+    scene_points = Column(Integer)
+
     def __init__(self):
         self.fake = Faker()
         self.first_name = self.fake.first_name()
         self.last_name = self.fake.last_name()
+        self.full_name = self.first_name + self.last_name
         self.dob = self.fake.date_of_birth(minimum_age = 18, maximum_age=90)
         self.scene_ID = self.fake.unique.random_int(min=1, max=999999)
         self.password = self.hash_pw(self.fake.password())
@@ -22,7 +50,7 @@ class Customer():
         self.credit_card = self.fake.credit_card_full(card_type='mastercard')
         self.credit_card_expiry = self.fake.credit_card_expire()
         self.store_credit = generate_rand(mean=5, mode=0, prob_of_mode = 0.8, size = 1, precision = 2)[0]
-        self.scene_points = generate_rand(mean=1000,mode=700,prob_of_mode=0.7,size=1)[0]
+        self.scene_points = generate_rand(mean=1000,mode=700,prob_of_mode=0.55,size=1)[0]
     
     def hash_pw(self,password):
         # secures password via salting

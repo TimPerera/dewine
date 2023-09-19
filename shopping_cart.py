@@ -1,7 +1,9 @@
+
 from faker import Faker
 
 class ShoppingCart():
     #  Generates a ShoppingCart option which contains the shopped items along with a time stamp. 
+
     def __init__(self, items):
         self.fake = Faker()
         self.items = items
@@ -17,3 +19,12 @@ class ShoppingCart():
         Total Cart Items: {len(self.items)}
         Cart Instantiated at: {self.session_start_time}
         """
+    def __repr__(self):
+        return f"""
+        Cart_ID: {self.cart_id}
+        Total Cart Items: {len(self.items)}
+        Cart Instantiated at: {self.session_start_time}
+        """
+    def show_cart(self):
+        for item in self.items:
+            print(item)

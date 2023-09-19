@@ -27,7 +27,6 @@ class Product():
             self.inventory = generate_rand(mean=600, mode=550, prob_of_mode=0.5, sd=1.2, size=1,precision=0)[0]
         print('Products Loaded.')
         
-    
     def __str__(self):
         return f'''
         Product ID: {self.idx}

@@ -2,7 +2,19 @@ from dateutil.relativedelta import relativedelta
 from faker import Faker
 from datetime import datetime
 
-class Transaction():
+from sqlalchemy import create_engine, Column, String, Float, Integer, DateTime
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
+class Transaction(Base):
+    __tablename__ = 'transactions'
+    transaction_id = Column(Integer, primary_key=True)
+    discount = Column(Float)
+    customer = Column(String)
+    cart_id = Column(Integer)
+    session_time = Column(DateTime)
+    discount_total = Column(Float)
+    total_cost = Column(Float)
 
     def __init__(self, customer, cart, time_limits, discount=0):
         self.fake = Faker()
