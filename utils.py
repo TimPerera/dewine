@@ -1,3 +1,8 @@
+"""
+`utils.py`
+This module contains helper functions utilized within other modules
+of this project.
+"""
 import random
 from math import ceil
 
@@ -22,20 +27,3 @@ def generate_rand(mean,mode, prob_of_mode, sd=1, size = 1,precision=2, non_zero 
                 res.append(abs(round(rand_val,precision)))
     return res
 
-
-# customer
-# credentials
-# customerLocation
-# contact
-# creditCardPayment
-# orderTable
-# scenePlus
-# payment
-# orderDetails
-# orderStatus
-# session
-# shoppingCart
-# discount
-# supplier
-# product
-# inventory

@@ -1,11 +1,16 @@
-
+"""
+`app.py`
+This module
+"""
 from datetime import datetime
 import random
 from math import ceil
 
+from transaction import Transactions
 from customer import Customer
+from product import Product
+from scene import ScenePlus
 from inventory import Inventory
-from transaction import Transaction
 from utils import generate_rand
 
 def run(file_path, num_customers=1, seasonal_dates=None, num_items=None, discount=0,
@@ -15,7 +20,7 @@ def run(file_path, num_customers=1, seasonal_dates=None, num_items=None, discoun
     # 1 .Load products metadata and suppliers
     print('Script Running...')
     customer_list = [Customer() for _ in range(num_customers)]
-    inventory = Inventory(data_path = file_path)
+    inventory = Inventory(file_path)
     list_of_transactions = []
     filtered_customer_list = []
     
@@ -54,8 +59,8 @@ def run(file_path, num_customers=1, seasonal_dates=None, num_items=None, discoun
             num_items = generate_rand(mean=3, mode=2, prob_of_mode=0.5, sd=1, precision=0)[0]
         shopping_cart= customer.buy_items(number_of_items=num_items,
                                             type_of_wine=type_of_wine,
-                                            selection = inventory.list)
-        transaction = Transaction(customer, shopping_cart, time_record, discount) # initializes a new session-time and transaction id.
+                                            selection = inventory.items)
+        transaction = Transactions(customer, shopping_cart, time_record, discount) # initializes a new session-time and transaction id.
         # Calculate Total
         transaction.get_total() # finalizes transaction and calculates the total value of the transaction (in-place).
         # 4. Update inventory to reflect customer purchases

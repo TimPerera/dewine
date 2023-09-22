@@ -1,28 +1,34 @@
 from dateutil.relativedelta import relativedelta
 from faker import Faker
-from datetime import datetime
+import datetime
 
-from sqlalchemy import create_engine, Column, String, Float, Integer, DateTime
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import ForeignKey, DateTime
+from sqlalchemy.sql import func
+from sqlalchemy.orm import Mapped, mapped_column, relationship, DeclarativeBase
 
-Base = declarative_base()
-class Transaction(Base):
+from connection import Base
+
+class Transactions(Base):
     __tablename__ = 'transactions'
-    transaction_id = Column(Integer, primary_key=True)
-    discount = Column(Float)
-    customer = Column(String)
-    cart_id = Column(Integer)
-    session_time = Column(DateTime)
-    discount_total = Column(Float)
-    total_cost = Column(Float)
-
+    
+    id:Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    discount:Mapped[float]
+    cart_id:Mapped[int] = mapped_column(ForeignKey('cart.id'))
+    session_time:Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    discount_total:Mapped[float]
+    total_cost:Mapped[float]
+    customer_id:Mapped[int] = mapped_column(ForeignKey('customer.id'))
+    customer:Mapped["Customer"] = relationship(back_populates='transactions')
+   
+    fake = Faker()
     def __init__(self, customer, cart, time_limits, discount=0):
+        print('INITIALIZED TRANSACTIONS')
+        self.id = self.generate_transaction_id()
         self.fake = Faker()
         self.discount = discount
         self.customer = customer
         self.cart = cart
         self.session_time = self.generate_session_time(time_limits)
-        self.transaction_id = self.generate_transaction_id()
         self.discount_total = self.get_discount(self.discount)
         self.total_cost = self.get_total() - self.discount_total
 
@@ -62,3 +68,4 @@ class Transaction(Base):
     
     def get_discount(self, discount):
         return discount*self.get_total()
+

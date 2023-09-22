@@ -4,35 +4,40 @@ Provides functionality for Customer object.
 """
 
 import random
+from typing import List
+import datetime
 
 from faker import Faker
 import bcrypt
-from sqlalchemy import Column, String, Date, Float, Integer
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import ForeignKey, DateTime
+from sqlalchemy.orm import relationship, Mapped, mapped_column
 
 from utils import generate_rand
 from shopping_cart import ShoppingCart
+from connection import Base
 
-Base = declarative_base()
 
 class Customer(Base):
     # Generates an instance of a customer with all their details.
     __tablename__ = 'customer'
 
-    first_name = Column(String)
-    last_name =  Column(String)   
-    dob = Column(Date)
-    scene_ID = Column(Date)
-    password = Column(String)
-    full_address = Column(String)
-    city = Column(String)
-    postal_code = Column(String)
-    email = Column(String)
-    phone = Column(String)
-    credit_card = Column(String)
-    credit_card_expiry =Column(String)
-    store_credit = Column(Float)
-    scene_points = Column(Integer)
+    id:Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    first_name:Mapped[str] 
+    last_name:Mapped[str]
+    dob:Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True))
+    password:Mapped[str]
+    full_address:Mapped[str]
+    city:Mapped[str]
+    postal_code:Mapped[str]
+    email:Mapped[str] = mapped_column(unique=True)
+    phone:Mapped[str]
+    credit_card:Mapped[str]
+    credit_card_expiry:Mapped[str]
+    store_credit:Mapped[float]
+    scene_points:Mapped[float]
+    # Ignore Pylint error below, string will be evaluated after all tables have been defined.
+    transactions:Mapped[List["Transactions"]] = relationship(back_populates='customer')
+    scene_plus:Mapped["ScenePlus"] = relationship(back_populates="customer")
 
     def __init__(self):
         self.fake = Faker()

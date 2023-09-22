@@ -1,8 +1,43 @@
+"""
+shopping_cart.py
+This module defines the ShoppingCart object which is used to containerize the Product objects
+whilst a customer is shopping.
+"""
 
 from faker import Faker
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from typing import List
 
-class ShoppingCart():
-    #  Generates a ShoppingCart option which contains the shopped items along with a time stamp. 
+from connection import Base
+
+class ShoppingCart(Base):
+    #  Generates a ShoppingCart which contains the shopped items. 
+    __tablename__ = 'shoppingcart'
+
+    id:Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    products:Mapped[List["Product"]] = relationship(back_populates="shoppingcart")
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     def __init__(self, items):
         self.fake = Faker()
@@ -17,14 +52,10 @@ class ShoppingCart():
         return f"""
         Cart_ID: {self.cart_id}
         Total Cart Items: {len(self.items)}
-        Cart Instantiated at: {self.session_start_time}
         """
     def __repr__(self):
-        return f"""
-        Cart_ID: {self.cart_id}
-        Total Cart Items: {len(self.items)}
-        Cart Instantiated at: {self.session_start_time}
-        """
+        return f"<ShoppingCart CartID:{self.cart_id}. Total Cart Items: {len(self.items)}."
+
     def show_cart(self):
         for item in self.items:
             print(item)
