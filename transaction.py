@@ -1,7 +1,8 @@
 from dateutil.relativedelta import relativedelta
-from faker import Faker
+from typing import Optional
 import datetime
 
+from faker import Faker
 from sqlalchemy import ForeignKey, DateTime
 from sqlalchemy.sql import func
 from sqlalchemy.orm import Mapped, mapped_column, relationship, DeclarativeBase
@@ -13,21 +14,21 @@ class Transactions(Base):
     
     id:Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     discount:Mapped[float]
-    cart_id:Mapped[int] = mapped_column(ForeignKey('cart.id'))
+    shoppingcart_id:Mapped[Optional[int]] = mapped_column(ForeignKey('shoppingcart.id'))
     session_time:Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     discount_total:Mapped[float]
     total_cost:Mapped[float]
     customer_id:Mapped[int] = mapped_column(ForeignKey('customer.id'))
     customer:Mapped["Customer"] = relationship(back_populates='transactions')
+    shoppingcart:Mapped["ShoppingCart"] = relationship(back_populates="transactions")
    
     fake = Faker()
     def __init__(self, customer, cart, time_limits, discount=0):
-        print('INITIALIZED TRANSACTIONS')
         self.id = self.generate_transaction_id()
         self.fake = Faker()
         self.discount = discount
         self.customer = customer
-        self.cart = cart
+        self.shoppingcart = cart
         self.session_time = self.generate_session_time(time_limits)
         self.discount_total = self.get_discount(self.discount)
         self.total_cost = self.get_total() - self.discount_total
@@ -35,7 +36,7 @@ class Transactions(Base):
 
     def __repr__(self):
         customer_name = f"{self.customer.first_name + ' ' + self.customer.last_name}"
-        customer_age = relativedelta(datetime.now().date(), self.customer.dob).years
+        customer_age = relativedelta(datetime.date.today(), self.customer.dob).years
         items_purchased = len(self.cart)
         products = [product.name for product in self.cart.items]
 

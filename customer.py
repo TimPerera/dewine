@@ -9,7 +9,7 @@ import datetime
 
 from faker import Faker
 import bcrypt
-from sqlalchemy import ForeignKey, DateTime
+from sqlalchemy import ForeignKey, DateTime, String
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 
 from utils import generate_rand
@@ -32,7 +32,7 @@ class Customer(Base):
     email:Mapped[str] = mapped_column(unique=True)
     phone:Mapped[str]
     credit_card:Mapped[str]
-    credit_card_expiry:Mapped[str]
+    credit_card_expiry:Mapped[str] = mapped_column(String)
     store_credit:Mapped[float]
     scene_points:Mapped[float]
     # Ignore Pylint error below, string will be evaluated after all tables have been defined.

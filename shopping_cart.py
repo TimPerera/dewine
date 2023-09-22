@@ -17,28 +17,7 @@ class ShoppingCart(Base):
 
     id:Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     products:Mapped[List["Product"]] = relationship(back_populates="shoppingcart")
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    transaction_id:Mapped[int] = mapped_column(ForeignKey("transaction.id"))
     def __init__(self, items):
         self.fake = Faker()
         self.items = items
