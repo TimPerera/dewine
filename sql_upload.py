@@ -6,7 +6,7 @@ from app import run
 from connection import create_session, engine
 
 session = create_session()
-num_customers = 1
+num_customers = 10
 
 # get transaction list
 transaction_list = run(
@@ -15,7 +15,7 @@ transaction_list = run(
         repeat_customers=0.3)
 
 
-print(transaction_list[0])
+print(transaction_list)
 # get customer list
 session.add_all(transaction_list)
 

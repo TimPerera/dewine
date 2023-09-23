@@ -38,7 +38,7 @@ class Transactions(Base):
         customer_name = f"{self.customer.first_name + ' ' + self.customer.last_name}"
         customer_age = relativedelta(datetime.date.today(), self.customer.dob).years
         items_purchased = len(self.shoppingcart)
-        products = [product.name for product in self.shoppingcart.items]
+        products = [product.name for product in self.shoppingcart.products]
 
         return f'''
         Transaction Details:
@@ -62,7 +62,7 @@ class Transactions(Base):
 
     def get_total(self):
         total_price = 0
-        for product in self.shoppingcart.items:
+        for product in self.shoppingcart.products:
             total_price += product.price * product.quantity 
         total_price = round(total_price,2)
         return total_price

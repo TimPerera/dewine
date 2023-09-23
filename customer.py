@@ -86,7 +86,7 @@ class Customer(Base):
             else:
                 product_chosen = random.choice(low_rated_products)
                 product_chosen.quantity = quantity
-            cart.items.append(product_chosen)
+            cart.products.append(product_chosen)
         return cart
         
     def __str__(self):

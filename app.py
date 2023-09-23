@@ -64,7 +64,7 @@ def run(file_path, num_customers=1, seasonal_dates=None, num_items=None, discoun
         # Calculate Total
         transaction.get_total() # finalizes transaction and calculates the total value of the transaction (in-place).
         # 4. Update inventory to reflect customer purchases
-        inventory.update_inventory(shopping_cart.items)
+        inventory.update_inventory(shopping_cart.products)
         list_of_transactions.append((transaction))
     return list_of_transactions 
     
