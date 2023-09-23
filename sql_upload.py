@@ -17,6 +17,6 @@ transaction_list = run(
 
 print(transaction_list[0])
 # get customer list
-#session.add_all(transaction_list)
+session.add_all(transaction_list)
 
-#session.commit()
+session.commit()

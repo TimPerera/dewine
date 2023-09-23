@@ -17,12 +17,14 @@ class ShoppingCart(Base):
 
     id:Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     products:Mapped[List["Product"]] = relationship(back_populates="shoppingcart")
-    transaction_id:Mapped[int] = mapped_column(ForeignKey("transaction.id"))
+    transaction_id:Mapped[int] = mapped_column(ForeignKey("transactions.id"))
+    transactions:Mapped["Transactions"] = relationship(back_populates="shoppingcart")
+
     def __init__(self, items):
         self.fake = Faker()
         self.items = items
         self.cart_id = self.fake.unique.random_int(min=1, max=999999)
-
+        
     def __len__(self):
         return len(self.items)
 

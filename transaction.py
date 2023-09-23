@@ -5,7 +5,7 @@ import datetime
 from faker import Faker
 from sqlalchemy import ForeignKey, DateTime
 from sqlalchemy.sql import func
-from sqlalchemy.orm import Mapped, mapped_column, relationship, DeclarativeBase
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from connection import Base
 
@@ -14,7 +14,6 @@ class Transactions(Base):
     
     id:Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     discount:Mapped[float]
-    shoppingcart_id:Mapped[Optional[int]] = mapped_column(ForeignKey('shoppingcart.id'))
     session_time:Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     discount_total:Mapped[float]
     total_cost:Mapped[float]
@@ -22,6 +21,7 @@ class Transactions(Base):
     customer:Mapped["Customer"] = relationship(back_populates='transactions')
     shoppingcart:Mapped["ShoppingCart"] = relationship(back_populates="transactions")
    
+
     fake = Faker()
     def __init__(self, customer, cart, time_limits, discount=0):
         self.id = self.generate_transaction_id()
@@ -37,8 +37,8 @@ class Transactions(Base):
     def __repr__(self):
         customer_name = f"{self.customer.first_name + ' ' + self.customer.last_name}"
         customer_age = relativedelta(datetime.date.today(), self.customer.dob).years
-        items_purchased = len(self.cart)
-        products = [product.name for product in self.cart.items]
+        items_purchased = len(self.shoppingcart)
+        products = [product.name for product in self.shoppingcart.items]
 
         return f'''
         Transaction Details:
@@ -62,7 +62,7 @@ class Transactions(Base):
 
     def get_total(self):
         total_price = 0
-        for product in self.cart.items:
+        for product in self.shoppingcart.items:
             total_price += product.price * product.quantity 
         total_price = round(total_price,2)
         return total_price
