@@ -32,11 +32,12 @@ class Inventory():
         product_list = []
         for id, data in enumerate(data.itertuples()):
             product = Product()
-            product.type = data.Type
+            product.wine_type = data.Type
             product.idx = id
             product.name = data.Name
             product.winery = data.Winery
             product.region = data.Region
+            product.country = data.Country
             product.rating = data.Rating
             product.price = data.Price
             product.year = data.Year
