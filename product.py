@@ -1,4 +1,5 @@
 from typing import Optional
+import pandas as pd
 
 from sqlalchemy import ForeignKey, Table, Column
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -47,6 +48,7 @@ class Product(Base):
             self.year = product.Year
             self.country = product.Country
             self.inventory = generate_rand(mean=600, mode=550, prob_of_mode=0.5, sd=1.2, size=1,precision=0)[0]
+        
         print('Products Loaded.')
         
     def __str__(self):
