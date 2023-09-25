@@ -5,7 +5,7 @@ from sqlalchemy import ForeignKey, Table, Column
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from connection import Base
-from utils import generate_rand
+from utils.utils import generate_rand
 
 class Product(Base):
     __tablename__='product'

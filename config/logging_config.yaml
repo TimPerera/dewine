@@ -1,0 +1,35 @@
+
+version: 1
+disable_existing_loggers: False
+formatters:
+  dev:
+    format: '%(asctime)s - %(module)s - %(levelname)s - %(name)s - %(message)s - %(lineno)d'
+    datefmt: '%m/%d/%Y %H:%M:%S'
+  user:
+    format: '%(asctime)s - %(levelname)s - %(name)s - %(message)s'
+    datefmt: '%H:%M:%S'
+handlers:
+  console:
+    class: logging.StreamHandler # messages to the terminal
+    level: DEBUG
+    formatter: dev
+    stream: ext://sys.stdout
+  file:
+    class: logging.handlers.TimedRotatingFileHandler
+    level: INFO
+    formatter: user
+    filename: logs.log
+    when: midnight
+    interval: 1
+    backupCount: 7
+loggers:
+  dev:
+    level: DEBUG
+    handlers: [file, console]
+  prod:
+    level: INFO
+    handlers: [file]
+
+
+
+

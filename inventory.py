@@ -5,9 +5,13 @@ for all products and their respective available quantities, and updates these
 quantities when customer purchases are made.
 """
 import pandas as pd
+import logging
 
-from utils import generate_rand
+from utils.utils import generate_rand
 from product import Product
+from utils.logger import SetUpLogging
+
+SetUpLogging().setup_logging()
 
 class Inventory():
     def __init__(self, data_path):
@@ -25,7 +29,8 @@ class Inventory():
                     print(f"Warning Low Inventory for {product.idx}: {product.name}")
             else:
                 product.inventory -= product.quantity
-        print("Inventory updated")
+        logging.info("Inventory updated for {}".format([product.name for product in cart]))
+        logging.debug('This is a debug message')
 
     def populate_inventory(self, data):
         # Generate product info

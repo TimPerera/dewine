@@ -12,7 +12,7 @@ import bcrypt
 from sqlalchemy import ForeignKey, DateTime, String
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 
-from utils import generate_rand
+from utils.utils import generate_rand
 from shopping_cart import ShoppingCart
 from connection import Base
 

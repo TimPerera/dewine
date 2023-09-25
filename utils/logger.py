@@ -2,6 +2,11 @@ import logging.config
 import yaml
 import os
 
+class infoFilter(logging.Filter):
+    def filter(self,log_record):
+        return log_record.name == ''
+
+
 class SetUpLogging():
     def __init__(self):
         self.default_config = os.path.join(os.path.dirname(

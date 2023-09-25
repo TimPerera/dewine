@@ -1,0 +1,4 @@
+18:51:40 - INFO - dev - This is an info message
+18:51:40 - WARNING - dev - This is a warning message
+18:51:40 - ERROR - dev - This is an error
+18:51:40 - CRITICAL - dev - This is critical

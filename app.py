@@ -5,20 +5,32 @@ This module
 from datetime import datetime
 import random
 from math import ceil
+import logging
 
+from utils.logger import SetUpLogging
 from transaction import Transactions
 from customer import Customer
 from product import Product
 from scene import ScenePlus
 from inventory import Inventory
-from utils import generate_rand
+from utils.utils import generate_rand
+
+SetUpLogging().setup_logging()
+
+logger = logging.getLogger('dev')
+
 
 def run(file_path, num_customers=1, seasonal_dates=None, num_items=None, discount=0,
         type_of_wine=False, less_than_age_condition=None, greater_than_age_condition=None, repeat_customers = None):
     # This method will walkthrough all necessary functions to generate data
-
+    
     # 1 .Load products metadata and suppliers
     print('Script Running...')
+    logger.debug('This is a debug message.')
+    logger.info('This is an info message')
+    logger.warning('This is a warning message')
+    logger.error('This is an error')
+    logger.critical('This is critical')
     customer_list = [Customer() for _ in range(num_customers)]
     inventory = Inventory(file_path)
     list_of_transactions = []
@@ -27,14 +39,14 @@ def run(file_path, num_customers=1, seasonal_dates=None, num_items=None, discoun
     # 2. Introduce trend parameters
     # 2.1 Filter customer list with discrimination across ages
     if not (less_than_age_condition and greater_than_age_condition):
-        print('No filter applied to customer list.')
+        logging.info('No filter applied to customer list.')
         filtered_customer_list = customer_list
     elif less_than_age_condition:
         filtered_customer_list = [cust for cust in customer_list if cust.dob >= less_than_age_condition]
     elif greater_than_age_condition:
         filtered_customer_list = [cust for cust in customer_list if cust.dob <= greater_than_age_condition]
     else:
-        print('Applied filter removed all customers. Removing Filter...')
+        logger.info('Applied filter removed all customers. Removing Filter...')
         filtered_customer_list = customer_list
     
     if repeat_customers:
@@ -47,6 +59,7 @@ def run(file_path, num_customers=1, seasonal_dates=None, num_items=None, discoun
         start_date = datetime(seasonal_dates['y'][0],seasonal_dates['m'][0],seasonal_dates['d'][0])
         end_date = datetime(seasonal_dates['y'][1],seasonal_dates['m'][1],seasonal_dates['d'][1])  
     else:
+        logger.debug('No seasonal dates provided.')
         start_date = '-3y'
         end_date = 'now'
     time_record = start_date, end_date
@@ -69,9 +82,8 @@ def run(file_path, num_customers=1, seasonal_dates=None, num_items=None, discoun
     return list_of_transactions 
     
 
-# if __name__=='__main__':
-#     print('Running...')
-#     sample_transactions = run(file_path ='./wine_data/consolidated_wine_data.csv',
-#                               transactions=5, num_customers=2)
-#     for transaction in sample_transactions:
-#         print(transaction)
+if __name__=='__main__':
+    sample_transactions = run(file_path ='./wine_data/consolidated_wine_data.csv',
+                              num_customers=2)
+    for transaction in sample_transactions:
+        print(transaction)

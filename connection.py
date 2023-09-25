@@ -15,7 +15,7 @@ class Base(DeclarativeBase):
 #config.read('config.ini')
 #db_url = 'postgresql://postgres:dewine@localhost/dewine'
 #engine = create_engine(db_url, echo=True)
-engine = create_engine("sqlite:///dewine.db",echo=True)
+engine = create_engine("sqlite:///dewine.db",echo=False)
 # Create tables
 def create_session():
     Base.metadata.create_all(engine) # engine define in globally

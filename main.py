@@ -2,18 +2,15 @@
 main.py
 Provides a command line interface for ecommerce app.
 """
-
 import argparse
 import re
 import logging
 
-
-
 from app import run
-from utils.logger import SetupLogging
+
 
 # initialize logger
-SetupLogging().setup_logging()
+
 
 def date_range(value):
     "Checks if provided dates are correctly formatted."

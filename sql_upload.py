@@ -15,7 +15,7 @@ transaction_list = run(
         repeat_customers=0.3)
 
 
-print(transaction_list)
+#print(transaction_list)
 # get customer list
 session.add_all(transaction_list)
 
