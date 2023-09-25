@@ -54,8 +54,8 @@ parser.add_argument('--maximum-age-filter','-l',dest='max_age',type=int, default
 args = parser.parse_args()
 print(f'file path',args.file_path)
 if __name__=='__main__':
-    print(f'Executed script, number of transactions {args.transactions}. Number of customers {args.num_customers}.\n \
-          Type of transaction: {type(args.transactions)}. Type of customers: {type(args.num_customers)}')
+    logging.info(f'Executed script, number of transactions {args.transactions}. Number of customers {args.num_customers}.\n \
+          Type of transaction: {type(args.transactions)}.')
     run(file_path=args.file_path,
         transactions=args.transactions,
         num_customers=args.num_customers,
