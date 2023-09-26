@@ -1,7 +1,7 @@
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from sqlalchemy import ForeignKey
 
-from connection import Base
+from config.connection import Base
 
 
 class ScenePlus(Base):

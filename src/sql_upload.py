@@ -3,9 +3,7 @@ sql_upload.py
 This module provides functionality to upload generated data to a SQL Database.
 """
 from app import run
-from dewine.config.connection import create_session
-
-
+from config.connection import create_session
 
 session = create_session()
 num_customers = 10

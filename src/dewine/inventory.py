@@ -8,10 +8,11 @@ import pandas as pd
 import logging
 
 from utils.utils import generate_rand
-from product import Product
+from dewine.product import Product
 from utils.logger import SetUpLogging
 
 SetUpLogging().setup_logging()
+logger = logging.getLogger('dev')
 
 class Inventory():
     def __init__(self, data_path):
@@ -26,11 +27,10 @@ class Inventory():
             if direction == 'negative':
                 product.inventory -= product.quantity # remove ordered items from inventory
                 if product.inventory <= 5: 
-                    print(f"Warning Low Inventory for {product.idx}: {product.name}")
+                    logger.warning(f"Warning Low Inventory for {product.idx}: {product.name}")
             else:
                 product.inventory -= product.quantity
-        logging.info("Inventory updated for {}".format([product.name for product in cart]))
-        logging.debug('This is a debug message')
+        logger.debug("Inventory updated for {}".format([product.name for product in cart]))
 
     def populate_inventory(self, data):
         # Generate product info
@@ -48,5 +48,5 @@ class Inventory():
             product.year = data.Year
             product.inventory = generate_rand(mean=600, mode=550, prob_of_mode=0.5, sd=1.2, size=1,precision=0)[0]
             product_list.append(product)
-        print('Database uploaded.')
+        logger.info('Database uploaded.')
         return product_list

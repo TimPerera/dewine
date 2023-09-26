@@ -9,23 +9,14 @@ import logging
 from faker import Faker
 from sqlalchemy import ForeignKey, Table, Column
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-import sys
-import os
-print(sys.path)
-
-
 
 from utils.logger import SetUpLogging
 from config.connection import Base
-
-
-
 
 SetUpLogging().setup_logging()
 
 
 logger = logging.getLogger('dev')
-print('current_log_config:',logger.getEffectiveLevel())
 logger.debug('path is Jello**********.')
 
 #from .config import connection

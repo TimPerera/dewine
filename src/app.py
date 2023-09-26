@@ -12,11 +12,12 @@ from dewine.customer import Customer
 from dewine.product import Product
 from dewine.scene import ScenePlus
 from dewine.inventory import Inventory
+from dewine.transaction import Transactions
 from utils.utils import generate_rand
 
 SetUpLogging().setup_logging()
 
-logger = logging.getLogger('dev')
+logger = logging.getLogger('prod')
 
 
 def run(file_path, num_customers=1, seasonal_dates=None, num_items=None, discount=0,
@@ -24,12 +25,7 @@ def run(file_path, num_customers=1, seasonal_dates=None, num_items=None, discoun
     # This method will walkthrough all necessary functions to generate data
     
     # 1 .Load products metadata and suppliers
-    print('Script Running...')
-    logger.debug('This is a debug message.')
-    logger.info('This is an info message')
-    logger.warning('This is a warning message')
-    logger.error('This is an error')
-    logger.critical('This is critical')
+    logger.info('Script Running...')
     customer_list = [Customer() for _ in range(num_customers)]
     inventory = Inventory(file_path)
     list_of_transactions = []
@@ -38,14 +34,14 @@ def run(file_path, num_customers=1, seasonal_dates=None, num_items=None, discoun
     # 2. Introduce trend parameters
     # 2.1 Filter customer list with discrimination across ages
     if not (less_than_age_condition and greater_than_age_condition):
-        logging.info('No filter applied to customer list.')
+        logger.debug('No filter applied to customer list.')
         filtered_customer_list = customer_list
     elif less_than_age_condition:
         filtered_customer_list = [cust for cust in customer_list if cust.dob >= less_than_age_condition]
     elif greater_than_age_condition:
         filtered_customer_list = [cust for cust in customer_list if cust.dob <= greater_than_age_condition]
     else:
-        logger.info('Applied filter removed all customers. Removing Filter...')
+        logger.debug('Applied filter removed all customers. Removing Filter...')
         filtered_customer_list = customer_list
     
     if repeat_customers:
