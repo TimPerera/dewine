@@ -2,17 +2,15 @@ import logging.config
 import yaml
 import os
 
-class infoFilter(logging.Filter):
-    def filter(self,log_record):
-        return log_record.name == ''
 
+#from src import project_root
 
 class SetUpLogging():
     def __init__(self):
         self.default_config = os.path.join(os.path.dirname(
-            os.path.abspath('__file__')),"config/logging_config.yaml")
+            os.path.abspath('__file__')),'..',"config/logging_config.yaml")
 
-    def setup_logging(self, default_level=logging.info):
+    def setup_logging(self, default_level=logging.INFO):
         path = self.default_config
         if os.path.exists(path):
             with open(path, 'rt') as f:

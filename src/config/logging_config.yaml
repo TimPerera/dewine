@@ -25,7 +25,7 @@ handlers:
 loggers:
   dev:
     level: DEBUG
-    handlers: [file, console]
+    handlers: [console]
   prod:
     level: INFO
     handlers: [file]

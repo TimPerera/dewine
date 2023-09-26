@@ -3,13 +3,34 @@ shopping_cart.py
 This module defines the ShoppingCart object which is used to containerize the Product objects
 whilst a customer is shopping.
 """
+from typing import List
+import logging
 
 from faker import Faker
 from sqlalchemy import ForeignKey, Table, Column
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from typing import List
+import sys
+import os
+print(sys.path)
 
-from connection import Base
+
+
+from utils.logger import SetUpLogging
+from config.connection import Base
+
+
+
+
+SetUpLogging().setup_logging()
+
+
+logger = logging.getLogger('dev')
+print('current_log_config:',logger.getEffectiveLevel())
+logger.debug('path is Jello**********.')
+
+#from .config import connection
+
+
 association_table = Table("association_table",
                           Base.metadata,
                           Column("shoppingcart_id", ForeignKey("shoppingcart.id")),

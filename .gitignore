@@ -1,4 +1,5 @@
 venv
 .Rhistory
 DeWineDatabase.png
- 
+__pycache__
+

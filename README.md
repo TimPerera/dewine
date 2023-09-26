@@ -13,7 +13,7 @@ De-Wine's infrastructure and data.
 - [X] Generare fake data
 - [ ] Populate SQL database
 - [ ] Package app
-- [ ] Add Logging
+- [X] Add Logging
 - [ ] Write tests
 - [ ] Create Tableau to visualize data
 - [ ] Use Machine Learning to analyze data

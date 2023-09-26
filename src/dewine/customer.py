@@ -13,8 +13,8 @@ from sqlalchemy import ForeignKey, DateTime, String
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 
 from utils.utils import generate_rand
-from shopping_cart import ShoppingCart
-from connection import Base
+from .shopping_cart import ShoppingCart
+from config.connection import Base
 
 
 class Customer(Base):

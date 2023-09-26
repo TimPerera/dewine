@@ -8,11 +8,10 @@ from math import ceil
 import logging
 
 from utils.logger import SetUpLogging
-from transaction import Transactions
-from customer import Customer
-from product import Product
-from scene import ScenePlus
-from inventory import Inventory
+from dewine.customer import Customer
+from dewine.product import Product
+from dewine.scene import ScenePlus
+from dewine.inventory import Inventory
 from utils.utils import generate_rand
 
 SetUpLogging().setup_logging()

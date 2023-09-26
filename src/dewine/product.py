@@ -4,7 +4,7 @@ import pandas as pd
 from sqlalchemy import ForeignKey, Table, Column
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from connection import Base
+from config.connection import Base
 from utils.utils import generate_rand
 
 class Product(Base):
