@@ -17,7 +17,7 @@ SetUpLogging().setup_logging()
 
 
 logger = logging.getLogger('dev')
-logger.debug('path is Jello**********.')
+
 
 #from .config import connection
 
