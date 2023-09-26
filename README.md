@@ -12,7 +12,7 @@ De-Wine's infrastructure and data.
 ### **Project TODO**
 - [X] Generare fake data
 - [ ] Populate SQL database
-- [ ] Package app
+- [X] Package app
 - [X] Add Logging
 - [ ] Write tests
 - [ ] Create Tableau to visualize data
