@@ -6,6 +6,7 @@ from datetime import datetime
 import random
 from math import ceil
 import logging
+import os
 
 from utils.logger import SetUpLogging
 from dewine.customer import Customer
@@ -14,16 +15,20 @@ from dewine.scene import ScenePlus
 from dewine.inventory import Inventory
 from dewine.transaction import Transactions
 from utils.utils import generate_rand
+from config.connection import create_session
+
 
 SetUpLogging().setup_logging()
 
 logger = logging.getLogger('prod')
+session = create_session()
 
 
 def run(file_path, num_customers=1, seasonal_dates=None, num_items=None, discount=0,
         type_of_wine=False, less_than_age_condition=None, greater_than_age_condition=None, repeat_customers = None):
     # This method will walkthrough all necessary functions to generate data
-    
+    path = os.getcwd()
+    logger.info(path)
     # 1 .Load products metadata and suppliers
     logger.info('Script Running...')
     customer_list = [Customer() for _ in range(num_customers)]
@@ -74,11 +79,21 @@ def run(file_path, num_customers=1, seasonal_dates=None, num_items=None, discoun
         # 4. Update inventory to reflect customer purchases
         inventory.update_inventory(shopping_cart.products)
         list_of_transactions.append((transaction))
+    # 4. Upload data to database
+    try:
+        session.add_all(list_of_transactions)
+        session.commit()
+        logger.info('Uploaded to SQL Database')
+    except Exception as e:
+        logger.exception('Database upload failed due to following exception:{}'.format(e))
     return list_of_transactions 
     
 
 if __name__=='__main__':
-    sample_transactions = run(file_path ='./wine_data/consolidated_wine_data.csv',
+
+    path = os.path.join(os.path.abspath(os.path.dirname('__file__')),'data/consolidated_wine_data.csv')
+
+    sample_transactions = run(file_path = path,
                               num_customers=2)
     for transaction in sample_transactions:
         print(transaction)

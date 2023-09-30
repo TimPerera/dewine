@@ -8,9 +8,7 @@ import logging
 
 from app import run
 
-
 # initialize logger
-
 
 def date_range(value):
     "Checks if provided dates are correctly formatted."
@@ -51,8 +49,8 @@ parser.add_argument('--maximum-age-filter','-l',dest='max_age',type=int, default
 args = parser.parse_args()
 print(f'file path',args.file_path)
 if __name__=='__main__':
-    logging.info(f'Executed script, number of transactions {args.transactions}. Number of customers {args.num_customers}.\n \
-          Type of transaction: {type(args.transactions)}.')
+    # logging.info(f'Executed script, number of transactions {args.transactions}. Number of customers {args.num_customers}.\n \
+    #       Type of transaction: {type(args.transactions)}.')
     run(file_path=args.file_path,
         transactions=args.transactions,
         num_customers=args.num_customers,

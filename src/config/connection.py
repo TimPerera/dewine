@@ -21,3 +21,4 @@ def create_session():
     Base.metadata.create_all(engine) # engine define in globally
     session = Session(bind=engine)
     return session
+

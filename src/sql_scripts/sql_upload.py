@@ -10,7 +10,7 @@ num_customers = 10
 
 # get transaction list
 transaction_list = run(
-        file_path='./wine_data/consolidated_wine_data.csv',
+        file_path='../wine_data/consolidated_wine_data.csv',
         num_customers=num_customers, 
         repeat_customers=0.3)
 

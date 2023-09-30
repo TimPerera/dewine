@@ -1,5 +1,4 @@
 from dateutil.relativedelta import relativedelta
-from typing import Optional
 import datetime
 
 from faker import Faker
@@ -12,7 +11,7 @@ from config.connection import Base
 class Transactions(Base):
     __tablename__ = 'transactions'
     
-    id:Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    id:Mapped[int] = mapped_column(primary_key=True)
     discount:Mapped[float]
     session_time:Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     discount_total:Mapped[float]
@@ -57,7 +56,9 @@ class Transactions(Base):
         return session_start_time
 
     def generate_transaction_id(self):
-        transaction_id = self.fake.unique.random_int(min=111111, max=999999)
+        transaction_id = self.fake.unique.random_int(min=0, max=9999999999)
+        # check if transaction_id already exists in db
+
         return transaction_id
 
     def get_total(self):
