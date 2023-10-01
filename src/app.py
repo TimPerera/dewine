@@ -27,8 +27,6 @@ session = create_session()
 def run(file_path, num_customers=1, seasonal_dates=None, num_items=None, discount=0,
         type_of_wine=False, less_than_age_condition=None, greater_than_age_condition=None, repeat_customers = None):
     # This method will walkthrough all necessary functions to generate data
-    path = os.getcwd()
-    logger.info(path)
     # 1 .Load products metadata and suppliers
     logger.info('Script Running...')
     customer_list = [Customer() for _ in range(num_customers)]
@@ -91,8 +89,8 @@ def run(file_path, num_customers=1, seasonal_dates=None, num_items=None, discoun
 
 if __name__=='__main__':
 
-    path = os.path.join(os.path.abspath(os.path.dirname('__file__')),'data/consolidated_wine_data.csv')
-
+    script_path = os.path.dirname(os.path.abspath(__file__))
+    path = os.path.join(script_path,'..', 'data', 'consolidated_wine_data.csv')
     sample_transactions = run(file_path = path,
                               num_customers=2)
     for transaction in sample_transactions:

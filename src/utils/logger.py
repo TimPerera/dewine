@@ -8,7 +8,7 @@ import os
 class SetUpLogging():
     def __init__(self):
         self.default_config = os.path.join(os.path.dirname(
-            os.path.abspath('__file__')),'..',"config/logging_config.yaml")
+            os.path.abspath('__file__')),"src/config/logging_config.yaml")
 
     def setup_logging(self, default_level=logging.INFO):
         path = self.default_config

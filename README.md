@@ -11,7 +11,7 @@ De-Wine's infrastructure and data.
 
 ### **Project TODO**
 - [X] Generare fake data
-- [ ] Populate SQL database
+- [X] Add SQL Functionality
 - [X] Package app
 - [X] Add Logging
 - [ ] Write tests
